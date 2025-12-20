@@ -206,22 +206,29 @@ LIMIT 25;
 
 -Highlights the top 25 skills that correspond to the highest-paying roles.
 
-### 5. Highest-Paying Skills for Remote Data Analyst Roles:
-This query finds the top 25 highest-paying skills associated with remote Data Analyst positions by calculating the average yearly salary for jobs requiring each skill.
+### 5. Most Optimal skills to learn
+This SQL query analyzes remote Data Analyst job postings to identify the most valuable technical skills.
+It joins job, skill, and salary data to calculate demand frequency and average salary for each skill.
 ```sql
 SELECT
-    skills,
-    ROUND(AVG(salary_year_avg), 0) AS avg_salary
+    skills_dim.skill_id,
+    skills_dim.skills,
+    COUNT(skills_job_dim.job_id) AS demand_count,
+    ROUND(AVG(job_postings_fact.salary_year_avg), 0) AS avg_salary
 FROM job_postings_fact
-INNER JOIN skills_job_dim 
-    ON job_postings_fact.job_id = skills_job_dim.job_id
-INNER JOIN skills_dim 
-    ON skills_job_dim.skill_id = skills_dim.skill_id
-WHERE job_title_short = 'Data Analyst'
-  AND salary_year_avg IS NOT NULL
-  AND job_work_from_home = TRUE
-GROUP BY skills
-ORDER BY avg_salary DESC
+INNER JOIN skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
+INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
+WHERE
+    job_title_short = 'Data Analyst'
+    AND salary_year_avg IS NOT NULL
+    AND job_work_from_home = True
+GROUP BY
+    skills_dim.skill_id
+HAVING
+    COUNT(skills_job_dim.job_id) > 10
+ORDER BY
+    avg_salary DESC,
+    demand_count DESC
 LIMIT 25;
 ```
 
@@ -240,9 +247,9 @@ LIMIT 25;
 | 233      | jira       | 20           | 104918     |
 
 ### What It Shows:
--Calculates the average salary for each skill across remote Data Analyst job postings.
+- It lists the top 25 most in-demand and high-paying skills for Data Analysts in remote roles.
 
--Highlights the top 25 skills that correspond to the highest-paying roles.
+- Skills with fewer than 10 job mentions are filtered out to ensure reliable, meaningful insights.
 
 # Conclusion:
 This project uses SQL to explore the remote Data Analyst job market, revealing clear patterns in salary, demand, and required skills. The analysis shows that senior and director-level positions consistently offer the highest compensation, while core skills such as SQL, Python, Excel, Tableau, and Power BI remain essential across most roles. Additionally, specialized technologies—including PySpark, Snowflake, Hadoop, and various cloud platforms—are strongly associated with higher salaries, highlighting their value in advanced data workflows.
